@@ -36,7 +36,7 @@ function c3_init() {
 	new C3_CloudFront_Cache_Controller\Views\Settings();
 	new WP\Fixtures();
 }
-c3_init();
+add_action('after_theme_setup', 'c3_init');
 
 /**
  * For WP-CLI.
