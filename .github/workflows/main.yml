@@ -1,0 +1,49 @@
+# GitHub Action: whenever creating a new release of the source code,
+# Taken from: https://leoloso.com/posts/github-action-to-release-wp-plugin/
+# also create a release of the installable plugin.
+# Steps to execute:
+# - Checkout the source code
+# - Run "composer install" to download all dependencies under vendor/
+# - Create a .zip file, excluding:
+#   - All hidden files (.git, .gitignore, etc)
+#   - All development files, ending in .dist
+#   - All composer files <= after installing dependencies, no need for them anymore
+#   - Markdown files concerning development
+#   - Folder build/ <= created only to store the .zip file
+#   - Folder dev-helpers/ <= not needed for the plugin
+# - Upload the .zip file as an artifact to the action (this step is possibly optional)
+# - Upload the .zip file as a release, for download
+name: Generate Installable Plugin, and Upload as Release Asset
+on:
+  release:
+    types: [published]
+jobs:
+  build:
+    name: Upload Release Asset
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout plugin code
+        uses: actions/checkout@v2
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with: 
+            php-version: '7.4'
+      - name: Build project
+        run: |
+          npm install --only=production
+          mkdir build
+      - name: Create artifact
+        uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -X -r build/c3-cloudfront-clear-cache-${{ github.event.release.tag_name }}.zip . -x "node_modules*" *.git* .* "*/\.*" CODE_OF_CONDUCT.md CONTRIBUTING.md ISSUE_TEMPLATE.md PULL_REQUEST_TEMPLATE.md README.md *.dist composer.* build** Gruntfile.js package.json package-lock.json composer.lock .distignore yarn.lock .wp-env.json ./tests/* phpunit.xml renovate.json .gitignore .editorconfig
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+            name: c3-cloudfront-clear-cache
+            path: build/c3-cloudfront-clear-cache-${{ github.event.release.tag_name }}.zip
+      - name: Upload to release
+        uses: JasonEtco/upload-to-release@master
+        with:
+          args: build/c3-cloudfront-clear-cache-${{ github.event.release.tag_name }}.zip application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

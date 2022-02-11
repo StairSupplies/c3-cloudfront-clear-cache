@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: C3 Cloudfront Cache Controller
- * Version: 6.1.2
+ * Version: 6.1.3
  * Plugin URI:https://github.com/amimoto-ami/c3-cloudfront-clear-cache
  * Description: Manage CloudFront Cache and provide some fixtures.
  * Author: hideokamoto
@@ -36,7 +36,7 @@ function c3_init() {
 	new C3_CloudFront_Cache_Controller\Views\Settings();
 	new WP\Fixtures();
 }
-c3_init();
+add_action('after_theme_setup', 'c3_init');
 
 /**
  * For WP-CLI.
